@@ -66,6 +66,7 @@ class TaskListManager:
 
     def view_tasks(self, filter_type='all'):
         if filter_type == 'completed':
+            
             return [task for task in self.tasks if task.completed]
         elif filter_type == 'pending':
             return [task for task in self.tasks if not task.completed]
