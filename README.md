@@ -24,7 +24,7 @@ A simple command-line To-Do List Manager written in Python. This program allows 
 
 ## Requirements
 
-- Python 3.x
+- Python 3.9 and above
 - `datetime` module (usually included in Python standard library)
 - 'sys' module (usually included in Python standard library)
 
@@ -39,13 +39,13 @@ A simple command-line To-Do List Manager written in Python. This program allows 
 
     ```bash
     Copy code
-    cd todo-list-manager
+    cd To-do-list-assignment
 3.Run the To-Do List assignment:
 
     ```bash
     Copy code
-    python todo_manager.py
-    Follow the on-screen menu to interact with the To-Do List Manager.
+    python main.py
+Follow the on-screen menu to interact with the To-do-list-assignment.
 
 Keyboard Interrupt Handling
 The program includes keyboard interrupt handling to gracefully exit the To-Do List Manager when a keyboard interrupt (e.g., Ctrl+C) is detected.
