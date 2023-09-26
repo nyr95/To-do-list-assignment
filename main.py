@@ -70,7 +70,10 @@ class TaskListManager:
         elif filter_type == 'pending':
             return [task for task in self.tasks if not task.completed]
         elif filter_type == 'all':
-            tasks = self.tasks
+
+
+
+            return self.tasks
         else:
             print("Invalid filter type. Use 'all', 'completed', or 'pending'.")
             return []
@@ -143,5 +146,5 @@ if __name__ == "__main__":
             else:
                     print("Invalid choice. Please select a valid option.")
     except KeyboardInterrupt:
-        print("\nKeyboard interrupt detected. Exiting the To-Do List Manager. Goodbye!")
+        print("\nKeyboard interrupt detected. Exiting the To Do List . Goodbye!")
         sys.exit(0)
