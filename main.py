@@ -1,57 +1,44 @@
-from datetime import datetime
-import sys
+class TaskBuilder:
+    def __init__(self, description):
+        self.task = Task()
+        self.task.description = description
 
+    def with_due_date(self, due_date):
+        self.task.due_date = due_date
+        return self
 
-# Memento Pattern
-class TaskMemento:
-    def __init__(self, task):
-        self.task = task
+    def build(self):
+        return self.task
 
-    def get_state(self):  # used to store the state of the list
-        return self.task.get_state()
-
-
-# Task class with Builder Pattern
 class Task:
-    def __init__(self, description, due_date=None):  #intialise task object
-        self.description = description
+    def __init__(self):
+        self.description = ""
+        self.due_date = None
         self.completed = False
-        self.due_date = due_date
 
     def mark_completed(self):
         self.completed = True
 
-    def mark_pending(self):
-        self.completed = False
+    def __str__(self):
+        status = "Completed" if self.completed else "Pending"
+        due_date_str = f", Due: {self.due_date}" if self.due_date else ""
+        return f"{self.description} - {status}{due_date_str}"
 
-    def get_state(self):
-        return {
-            'description': self.description,
-            'completed': self.completed,
-            'due_date': self.due_date
-        }
+class TaskMemento:
+    def __init__(self, tasks):
+        self.tasks = tasks
 
-    class Builder:   #used for building tasks
-        def __init__(self, description):
-            self.task = Task(description)
-
-        def set_due_date(self, due_date):
-            self.task.due_date = due_date
-            return self
-
-        def build(self):
-            return self.task
-
-
-# Task List Manager:used to manage various tasks
 class TaskListManager:
     def __init__(self):
         self.tasks = []
         self.history = []
 
     def add_task(self, task):
-        self.tasks.append(task)
-        self.save_state()
+        if task.description:
+            self.tasks.append(task)
+            self.save_state()
+        else:
+            print("Error: Task description cannot be empty.")
 
     def mark_completed(self, description):
         for task in self.tasks:
@@ -59,93 +46,109 @@ class TaskListManager:
                 task.mark_completed()
                 self.save_state()
                 return
+        print(f"Error: Task '{description}' not found.")
 
     def delete_task(self, description):
-        self.tasks = [task for task in self.tasks if task.description != description]
-        self.save_state()
-
-    def view_tasks(self, filter_type='all'):
-        if filter_type == 'completed':
-            
-            return [task for task in self.tasks if task.completed]
-        elif filter_type == 'pending':
-            return [task for task in self.tasks if not task.completed]
-        elif filter_type == 'all':
-
-
-
-            return self.tasks
+        found = False
+        for task in self.tasks:
+            if task.description == description:
+                self.tasks.remove(task)
+                found = True
+                break
+        if found:
+            self.save_state()
         else:
-            print("Invalid filter type. Use 'all', 'completed', or 'pending'.")
-            return []
-
-        if not tasks:
-            print("No tasks found.")
-
-    def undo(self):
-        if len(self.history) > 1:
-            self.history.pop()
-            self.tasks = self.history[-1].get_state()
-
-    def redo(self):
-        if len(self.history) > 1:
-            self.history.pop()
-            self.tasks = self.history[-1].get_state()
+            print(f"Error: Task '{description}' not found.")
 
     def save_state(self):
         self.history.append(TaskMemento(list(self.tasks)))
 
+    def undo(self):
+        if len(self.history) > 1:
+            self.history.pop()
+            previous_state = self.history[-1]
+            self.tasks = previous_state.tasks
+        else:
+            print("Error: Cannot undo further.")
 
-# User Interface
-if __name__ == "__main__":
-    task_list_manager = TaskListManager()
+    def display_tasks(self, filter_type=None):
+        if filter_type == "completed":
+            filtered_tasks = [task for task in self.tasks if task.completed]
+        elif filter_type == "pending":
+            filtered_tasks = [task for task in self.tasks if not task.completed]
+        else:
+            filtered_tasks = self.tasks
 
+        if not filtered_tasks:
+            print("No tasks to display.")
+        else:
+            for task in filtered_tasks:
+                print(task)
+
+def safe_input(prompt):
     try:
-        while True:
-            print("\nMenu:")
-            print("1. Add Task")
-            print("2. Mark Completed")
-            print("3. Delete Task")
-            print("4. View Tasks")
-            print("5. Undo")
-            print("6. Redo")
-            print("7. Exit")
-            print("please enter the choices as single digits from 1 to 7 ex:1")
-
-            choice = input("Enter your choice: ")
-
-            if choice == '1':
-                description = input("Enter task description: ")
-                due_date = input("Enter due date (YYYY-MM-DD) [Optional]: ")
-                if due_date:
-                    due_date = datetime.strptime(due_date, "%Y-%m-%d")
-                    task = Task.Builder(description).set_due_date(due_date).build()
-                    task_list_manager.add_task(task)
-            elif choice == '2':
-                    description = input("Enter task description to mark as completed: ")
-                    task_list_manager.mark_completed(description)
-            elif choice == '3':
-                    description = input("Enter task description to delete: ")
-                    task_list_manager.delete_task(description)
-            elif choice == '4':
-                    filter_type = input("Enter filter type (all/completed/pending): ")
-                    tasks = task_list_manager.view_tasks(filter_type)
-                    for task in tasks:
-                        if task:
-                            status = "Completed" if task.completed else "Pending"
-                            due_date = task.due_date.strftime("%Y-%m-%d") if task.due_date else "N/A"
-                            print(f"{task.description} - {status}, Due: {due_date}")
-                        else:
-                             print("No tasks are present currently")
-            elif choice == '5':
-                    task_list_manager.undo()
-            elif choice == '6':
-                    task_list_manager.redo()
-            elif choice == '7':
-                    print("Exiting the To-Do List Manager. Goodbye!")
-                    break
-            else:
-                    print("Invalid choice. Please select a valid option.")
+        return input(prompt)
     except KeyboardInterrupt:
-        print("\nKeyboard interrupt detected. Exiting the To Do List . Goodbye!")
-        sys.exit(0)
+        print("\nExiting the To-Do List Manager. Goodbye!")
+        exit()
+
+def print_menu():
+    print("\n=== To-Do List Manager Menu ===")
+    print("1. Add Task")
+    print("2. Mark Task as Completed")
+    print("3. Delete Task")
+    print("4. View All Tasks")
+    print("5. View Completed Tasks")
+    print("6. View Pending Tasks")
+    print("7. Undo")
+    print("8. Exit")
+
+def main():
+    manager = TaskListManager()
+    
+    while True:
+        try:
+            print_menu()
+            choice = safe_input("Enter your choice: ")
+        
+            if choice == "1":
+                description = safe_input("Enter task description: ")
+                due_date = safe_input("Enter due date (optional): ")
+                task_builder = TaskBuilder(description)
+                if due_date:
+                    task_builder.with_due_date(due_date)
+                task = task_builder.build()
+                manager.add_task(task)
+            
+            elif choice == "2":
+                description = safe_input("Enter the task you completed: ")
+                manager.mark_completed(description)
+            
+            elif choice == "3":
+                description = safe_input("Enter the task you want to delete: ")
+                manager.delete_task(description)
+            
+            elif choice == "4":
+                manager.display_tasks()
+            
+            elif choice == "5":
+                manager.display_tasks("completed")
+            
+            elif choice == "6":
+                manager.display_tasks("pending")
+            
+            elif choice == "7":
+                manager.undo()
+            
+            elif choice == "8":
+                print("Exiting the To-Do List Manager. Goodbye!")
+                break
+            
+            else:
+                print("Invalid choice. Please try again.")
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
+if __name__ == "__main__":
+    main()
+
